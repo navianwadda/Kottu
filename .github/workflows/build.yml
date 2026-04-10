@@ -1,18 +1,46 @@
-name: Build Debug APK
-on: [push, workflow_dispatch]
+name: Android CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-      - run: chmod +x gradlew
-      - run: ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
+
+      # This step fixes the "No such file" error by making sure we are in the right spot
+      - name: Make Gradlew Executable
+        run: |
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+          elif [ -f "OdidoProject/gradlew" ]; then
+            chmod +x OdidoProject/gradlew
+          else
+            echo "Gradlew not found in root or subfolder. Please ensure it is committed."
+            exit 1
+          fi
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: Odido-Player-Debug
+          # The ** wildcard helps find the APK even if your folder structure is different
+          path: "**/build/outputs/apk/debug/*.apk"
+          if-no-files-found: error
