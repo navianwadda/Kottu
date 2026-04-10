@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.exoplayer.drm.DefaultDrmSessionManager
 import androidx.media3.exoplayer.drm.LocalMediaDrmCallback
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm
 import androidx.media3.ui.PlayerView
 
 class MainActivity : AppCompatActivity() {
@@ -19,16 +20,17 @@ class MainActivity : AppCompatActivity() {
         val playerView = PlayerView(this)
         setContentView(playerView)
 
-        val streamUrl = "PASTE_YOUR_FULL_MPD_URL_HERE"
-        val userAgent = "Mozila"
+        // Configuration
+        val streamUrl = "PASTE_YOUR_URL_HERE"
+        val userAgent = "Mozilla"
         val kid = "ef34ae91b4f2415e8439b2ad105e7488"
         val key = "243248d8de1ff8c7c587ee2057317523"
 
-        // DRM Setup
+        // DRM Setup - Fixed for Media3 1.3.1 compatibility
         val drmJson = ClearKeyUtils.createClearKeyJson(kid, key)
         val drmCallback = LocalMediaDrmCallback(drmJson.toByteArray())
         val drmSessionManager = DefaultDrmSessionManager.Builder()
-            .setUuidAndExoMediaDrmProvider(C.CLEARKEY_UUID) { it }
+            .setUuidAndExoMediaDrmProvider(C.CLEARKEY_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
             .build(drmCallback)
 
         // Data Source
@@ -53,5 +55,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         player?.release()
+        player = null
     }
 }
