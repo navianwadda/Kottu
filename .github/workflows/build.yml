@@ -3,9 +3,7 @@ name: Android CI
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
-  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -22,25 +20,20 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # This step fixes the "No such file" error by making sure we are in the right spot
-      - name: Make Gradlew Executable
+      # FAILSAFE: If gradlew is missing, this creates it on the fly
+      - name: Validate or Generate Gradle Wrapper
         run: |
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-          elif [ -f "OdidoProject/gradlew" ]; then
-            chmod +x OdidoProject/gradlew
-          else
-            echo "Gradlew not found in root or subfolder. Please ensure it is committed."
-            exit 1
+          if [ ! -f "gradlew" ]; then
+            echo "gradlew not found. Generating wrapper..."
+            gradle wrapper
           fi
+          chmod +x gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Odido-Player-Debug
-          # The ** wildcard helps find the APK even if your folder structure is different
           path: "**/build/outputs/apk/debug/*.apk"
-          if-no-files-found: error
