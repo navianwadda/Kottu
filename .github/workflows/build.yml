@@ -20,17 +20,13 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # FAILSAFE: If gradlew is missing, this creates it on the fly
-      - name: Validate or Generate Gradle Wrapper
-        run: |
-          if [ ! -f "gradlew" ]; then
-            echo "gradlew not found. Generating wrapper..."
-            gradle wrapper
-          fi
-          chmod +x gradlew
+      # This installs Gradle from scratch on the runner so it doesn't need your local file
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Build with Gradle
+        # We use 'gradle' directly instead of './gradlew'
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
