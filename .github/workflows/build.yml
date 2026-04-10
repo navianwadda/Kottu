@@ -20,13 +20,12 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # This installs Gradle from scratch on the runner so it doesn't need your local file
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build with Gradle
-        # We use 'gradle' directly instead of './gradlew'
-        run: gradle assembleDebug
+        # Using --no-daemon can sometimes prevent memory issues in CI
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
